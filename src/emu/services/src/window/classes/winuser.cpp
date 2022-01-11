@@ -139,18 +139,13 @@ namespace eka2l1::epoc {
     }
 
     void canvas_base::wipeout() {
-        std::unique_ptr<drivers::graphics_command_list> cmd_list = nullptr;
-        std::unique_ptr<drivers::graphics_command_list_builder> cmd_builder = nullptr;
-
+        drivers::graphics_command_builder builder;
         drivers::graphics_driver *drv = client->get_ws().get_graphics_driver();
 
         // Remove driver bitmap
         if (driver_win_id) {
             // Queue a resize command
-            cmd_list = drv->new_command_list();
-            cmd_builder = drv->new_command_builder(cmd_list.get());
-
-            cmd_builder->destroy_bitmap(driver_win_id);
+            builder.destroy_bitmap(driver_win_id);
             driver_win_id = 0;
         }
 
@@ -158,17 +153,11 @@ namespace eka2l1::epoc {
             // Let's just recreate later, just a temp for scrolling
             drivers::graphics_driver *drv = client->get_ws().get_graphics_driver();
 
-            if (!cmd_list)
-                cmd_list = drv->new_command_list();
-             
-            if (!cmd_builder) 
-                cmd_builder = drv->new_command_builder(cmd_list.get());
-
-            cmd_builder->destroy_bitmap(ping_pong_driver_win_id);
+            builder.destroy_bitmap(ping_pong_driver_win_id);
             ping_pong_driver_win_id = 0;
         }
 
-        if (cmd_list && cmd_builder) {
+        if (!builder) {
             drv->submit_command_list(*cmd_list);
         }
     }
